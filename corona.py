@@ -1,52 +1,63 @@
 from datetime import datetime
 import requests
 import sys
-# import re
+import re
 
-date = datetime.now()
-date_end = date.strftime("%d/%m/%Y %H:%M:%S")
 
-if sys.argv[1:] == []:
+# class Corona:
+#     def __init__(self, country):
+#         self.location = country
+#         self.cases = ''
+#         self.deaths = ''
+#         self.recoveries = ''
 
-    r = requests.get('https://www.worldometers.info/coronavirus/')
-    text = str(r.content)
+def data_texto():
+    date = datetime.now()
+    date_end = date.strftime("%d/%m/%Y %H:%M:%S")
 
-    # pad = re.compile(r"\d\d\d,\d\d\d")
-    # found = pad.finditer(text)
-    # for i in found:
-    #     print(i)
+    return date_end
 
-    print(text[384:393] + " ; " + text[404:410] + " ; " + text[9788:9795] + " ; " + date_end)
 
-elif sys.argv[1] == "brazil":
-
-    r1 = requests.get('https://www.worldometers.info/coronavirus/country/brazil/')
-    text_br = str(r1.content)
-    print(text_br[375:381] + " ; " + text_br[391:395] + " ; " + text_br[8930:8933] + " ; " + date_end)
-
-elif sys.argv[1] == "italy":
-
-    r2 = requests.get('https://www.worldometers.info/coronavirus/country/italy/')
-    text_it = str(r2.content)
-    if text_it[8934] == ">":
-        print(text_it[374:381] + " ; " + text_it[392:398] + " ; " + text_it[8935:8941] + " ; " + date_end)
+def request_site():
+    location = sys.argv[1:]
+    link = 'https://www.worldometers.info/coronavirus/'
+    if location != 'world':
+        return link + f'country/{location}'
     else:
-        print(text_it[374:381] + " ; " + text_it[392:398] + " ; " + text_it[8934:8940] + " ; " + date_end)
+        return link
 
-elif sys.argv[1] == "us":
 
-    r3 = requests.get('https://www.worldometers.info/coronavirus/country/us/')
-    text_us = str(r3.content)
-    if text_us[8964] == ">":
-        print(text_us[382:389] + " ; " + text_us[400:405] + " ; " + text_us[8965:8971] + " ; " + date_end)
-    else:
-        print(text_us[382:389] + " ; " + text_us[400:405] + " ; " + text_us[8964:8970] + " ; " + date_end)
+def get_site():
+    r = requests.get(request_site())
+    source = r.text
 
-elif sys.argv[1] == "spain":
+    return source
 
-    r4 = requests.get('https://www.worldometers.info/coronavirus/country/spain/')
-    text_sp = str(r4.content)
-    if text_sp[8934] == ">":
-        print(text_sp[374:381] + " ; " + text_sp[392:398] + " ; " + text_sp[8935:8941] + " ; " + date_end)
-    else:
-        print(text_sp[374:381] + " ; " + text_sp[392:398] + " ; " + text_sp[8934:8940] + " ; " + date_end)
+
+def update():
+    cases_regex = re.compile(r'<h1>Coronavirus[\S\s]+\">([\d, ]+)<\Wspan>\s<\Wdiv>')
+    cases_search = cases_regex.search(data_texto())
+    cases = cases_search.group(1)
+    deaths_regex = re.compile(r'<h1>Deaths:<\Wh1>\s<[\s\S]+\Smaincounter-number\S>\s<span>([\d, ]+)<\Sspan>')
+    deaths_search = deaths_regex.search(data_texto())
+    deaths = deaths_search.group(1)
+    recoveries_regex = re.compile(
+        r'<h1>Recovered:<\Wh1>\s<[\s\S]+\W{2}maincounter-number\W\sstyle\W{2}color:\W8ACA2B\s\W>\s<span>([\d, ]+)<\Sspan>')
+    recoveries_search = recoveries_regex.search(data_texto())
+    recoveries = recoveries_search.group(1)
+    cases = cases.replace(',', '')
+    cases = cases.replace(' ', '')
+    deaths = deaths.replace(',', '')
+    recoveries = recoveries.replace(',', '')
+
+    print(cases, deaths, recoveries)
+    return {cases, deaths, recoveries}
+
+
+if __name__ == 'main':
+    data_texto()
+    request_site()
+    get_site()
+    update()
+
+
