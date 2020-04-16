@@ -4,14 +4,7 @@ import sys
 import re
 
 
-# class Corona:
-#     def __init__(self, country):
-#         self.location = country
-#         self.cases = ''
-#         self.deaths = ''
-#         self.recoveries = ''
-
-def data_texto():
+def date_text():
     date = datetime.now()
     date_end = date.strftime("%d/%m/%Y %H:%M:%S")
 
@@ -19,11 +12,11 @@ def data_texto():
 
 
 def request_site():
-    location = sys.argv[1:]
     link = 'https://www.worldometers.info/coronavirus/'
-    if location != 'world':
+    try:
+        location = sys.argv[1]
         return link + f'country/{location}'
-    else:
+    except:
         return link
 
 
@@ -35,29 +28,21 @@ def get_site():
 
 
 def update():
-    cases_regex = re.compile(r'<h1>Coronavirus[\S\s]+\">([\d, ]+)<\Wspan>\s<\Wdiv>')
-    cases_search = cases_regex.search(data_texto())
-    cases = cases_search.group(1)
-    deaths_regex = re.compile(r'<h1>Deaths:<\Wh1>\s<[\s\S]+\Smaincounter-number\S>\s<span>([\d, ]+)<\Sspan>')
-    deaths_search = deaths_regex.search(data_texto())
-    deaths = deaths_search.group(1)
-    recoveries_regex = re.compile(
-        r'<h1>Recovered:<\Wh1>\s<[\s\S]+\W{2}maincounter-number\W\sstyle\W{2}color:\W8ACA2B\s\W>\s<span>([\d, ]+)<\Sspan>')
-    recoveries_search = recoveries_regex.search(data_texto())
-    recoveries = recoveries_search.group(1)
-    cases = cases.replace(',', '')
-    cases = cases.replace(' ', '')
-    deaths = deaths.replace(',', '')
-    recoveries = recoveries.replace(',', '')
+    match_cases = re.findall(r'\">(.*\d+,\d+)\s<', get_site())
+    cases = match_cases[0]
 
-    print(cases, deaths, recoveries)
-    return {cases, deaths, recoveries}
+    match_death_recoveries = re.findall(r'<span>(.*.*\d+)</span>', get_site())
+    deaths = match_death_recoveries[0]
+    recoveries = match_death_recoveries[1]
+
+    return cases + " " + deaths + " " + recoveries + " " + date_text()
 
 
-if __name__ == 'main':
-    data_texto()
+if __name__ == '__main__':
+    date_text()
     request_site()
     get_site()
-    update()
-
-
+    try:
+        print(update())
+    except IndexError:
+        print("Digite o Parâmetro-País em Inglês (Para EUA, digite 'us')")
