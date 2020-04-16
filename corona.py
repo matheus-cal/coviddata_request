@@ -45,4 +45,4 @@ if __name__ == '__main__':
     try:
         print(update())
     except IndexError:
-        print("Digite o Parâmetro-País em Inglês (Para EUA, digite 'us')")
+        print("Digite o Parâmetro-País em Inglês (Para EUA/USA, digite 'us')")
